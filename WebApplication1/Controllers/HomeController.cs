@@ -17,29 +17,30 @@ namespace WebApplication1.Controllers
     {
         public ActionResult Index(Guid? invoiceId)
         {
-            var id = ConfigurationManager.AppSettings.Get("invoiceId");
-            Guid entityGuid = new Guid(id);
-            if (entityGuid!=null)
+            Guid invoiceRecordId;
+            if (invoiceId.HasValue)
             {
-                OrganizationServiceProxy serviceProxy = ConnectHelper.CrmService;
-                var service = (IOrganizationService)serviceProxy;
-                try
-                {
-                    Entity mainEntity = service.Retrieve("invoice", entityGuid, new ColumnSet(true));
-                    ViewBag.Name = mainEntity.GetAttributeValue<string>("name");
-                    ViewBag.TotalAmount= mainEntity.GetAttributeValue<Money>("totalamount").Value;
-                }
-                catch
-                {
-                    ViewBag.Message = "There is no MainEntity with ID:"+invoiceId;
-                }
-                
+                invoiceRecordId = (Guid)invoiceId;
             }
             else
             {
-                ViewBag.Message = "Enter MainEntity guid as parameter";
+                invoiceRecordId = new Guid(ConfigurationManager.AppSettings.Get("invoiceId"));
+                ViewBag.Message = "Enter Invoice guid as parameter. (Now it's read from Web.config)";
             }
-            
+
+            OrganizationServiceProxy serviceProxy = ConnectHelper.CrmService;
+            var service = (IOrganizationService)serviceProxy;
+            try
+            {
+                Entity mainEntity = service.Retrieve("invoice", invoiceRecordId, new ColumnSet(true));
+                ViewBag.Name = mainEntity.GetAttributeValue<string>("name");
+                ViewBag.TotalAmount = mainEntity.GetAttributeValue<Money>("totalamount").Value;
+            }
+            catch
+            {
+                ViewBag.Message = "There is no Invoice with ID:" + invoiceRecordId;
+            }
+
             return View();
         }
 
